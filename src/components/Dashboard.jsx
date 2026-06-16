@@ -1,6 +1,37 @@
 import { useState, useRef, useEffect } from 'react'
 import { callSumopod } from '../api'
 
+/* ─── Real-Time Digital Clock ─── */
+function RealTimeClock() {
+  const [now, setNow] = useState(new Date())
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+  const dayName = days[now.getDay()]
+  const date = now.getDate()
+  const month = months[now.getMonth()]
+  const year = now.getFullYear()
+  const h = String(now.getHours()).padStart(2, '0')
+  const m = String(now.getMinutes()).padStart(2, '0')
+  const s = String(now.getSeconds()).padStart(2, '0')
+
+  return (
+    <div className="flex items-center gap-2 text-white/50 text-xs font-mono tracking-wider">
+      <span className="hidden sm:inline">{dayName}, {date} {month} {year}</span>
+      <span className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-lg border border-white/[0.05]">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span>{h}:{m}:{s}</span>
+      </span>
+    </div>
+  )
+}
+
 const modes = [
   { id: 'storytelling', icon: '📖', label: 'Storytelling', color: 'from-cyan-500 to-blue-600' },
   { id: 'marketing', icon: '🛍️', label: 'Marketing', color: 'from-rose-500 to-pink-600' },
@@ -41,7 +72,7 @@ function SlideLoading() {
   )
 }
 
-export default function Dashboard({ user, apiKey, apiModel, onLogout, onSettings, isDemo }) {
+export default function Dashboard({ user, apiKey, apiModel, onLogout, onSettings }) {
   const [activeMode, setActiveMode] = useState('storytelling')
   const [input, setInput] = useState('')
   const [extra, setExtra] = useState('')
@@ -219,13 +250,9 @@ Format: tiap slide dipisah "---"`,
             TB
           </span>
           <span className="font-bold">Thread<span className="aurora-text">Boost</span></span>
-          {isDemo && (
-            <span className="text-[10px] bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold border border-amber-500/20">
-              DEMO
-            </span>
-          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <RealTimeClock />
           <button
             onClick={onSettings}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer text-sm"

@@ -30,7 +30,7 @@ const benefits = [
   '⌛ Hemat waktu mikir struktur',
 ]
 
-export default function LandingPage({ onLogin, onEnter, isDemo }) {
+export default function LandingPage({ onLogin, onEnter }) {
   const [showLogin, setShowLogin] = useState(false)
 
   return (
@@ -105,20 +105,12 @@ export default function LandingPage({ onLogin, onEnter, isDemo }) {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center animate-fade-up" style={{ animationDelay: '0.3s' }}>
-            {isDemo ? (
-              <button onClick={onEnter} className="aurora-btn px-8 py-3.5 font-bold cursor-pointer">
-                🚀 Coba Demo (Tanpa Login)
-              </button>
-            ) : (
-              <>
-                <button onClick={() => setShowLogin(true)} className="aurora-btn px-8 py-3.5 font-bold cursor-pointer">
-                  Mulai Gratis
-                </button>
-                <button onClick={onEnter} className="px-8 py-3.5 bg-white/5 hover:bg-white/10 rounded-xl font-bold transition-all border border-white/10 hover:border-white/20 cursor-pointer">
-                  Coba Dulu
-                </button>
-              </>
-            )}
+            <button onClick={() => setShowLogin(true)} className="aurora-btn px-8 py-3.5 font-bold cursor-pointer">
+              Mulai Gratis
+            </button>
+            <button onClick={onEnter} className="px-8 py-3.5 bg-white/5 hover:bg-white/10 rounded-xl font-bold transition-all border border-white/10 hover:border-white/20 cursor-pointer">
+              Langsung Pakai →
+            </button>
             <a href="#features" className="px-8 py-3.5 bg-white/5 hover:bg-white/10 rounded-xl font-bold transition-all border border-white/10 hover:border-white/20 inline-flex items-center cursor-pointer">
               Lihat Fitur
             </a>
@@ -234,14 +226,12 @@ export default function LandingPage({ onLogin, onEnter, isDemo }) {
               </svg>
               Masuk dengan Google
             </button>
-            {isDemo && (
-              <button
-                onClick={() => { setShowLogin(false); onEnter() }}
-                className="w-full mt-3 py-3 text-sm text-white/50 hover:text-white/80 transition-colors cursor-pointer"
-              >
-                Atau coba demo dulu →
-              </button>
-            )}
+            <button
+              onClick={() => { setShowLogin(false); onEnter() }}
+              className="w-full mt-3 py-3 text-sm text-white/50 hover:text-white/80 transition-colors cursor-pointer"
+            >
+              Atau langsung pakai →
+            </button>
           </div>
         </div>
       )}

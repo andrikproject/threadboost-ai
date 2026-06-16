@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { auth, firebaseReady, onAuthStateChanged, signInWithPopup, signOut } from './firebase'
-import { callSumopod } from './api'
 import LandingPage from './components/LandingPage'
 import Dashboard from './components/Dashboard'
 import Settings from './components/Settings'
@@ -11,12 +10,11 @@ function App() {
   const [page, setPage] = useState('landing')
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('sumopod_api_key') || '')
   const [apiModel, setApiModel] = useState(() => localStorage.getItem('sumopod_model') || 'gpt-4o-mini')
-  const [demoMode, setDemoMode] = useState(false)
 
   useEffect(() => {
     if (!firebaseReady || !auth) {
+      // Firebase not configured — langsung akses sebagai guest
       setLoading(false)
-      setDemoMode(true)
       return
     }
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -48,10 +46,15 @@ function App() {
     setPage('landing')
   }
 
-  const enterDemo = () => {
-    setDemoMode(true)
+  const goToApp = () => {
     setPage('dashboard')
   }
+
+  const guestUser = () => ({
+    displayName: localStorage.getItem('threadboost_name') || 'Guest',
+    email: 'guest@local',
+    photoURL: null,
+  })
 
   const saveApiKey = (key, model) => {
     setApiKey(key)
@@ -71,44 +74,22 @@ function App() {
     )
   }
 
-  if (page === 'landing' && !user && !demoMode) {
-    return <LandingPage onLogin={login} onEnter={enterDemo} isDemo={!firebaseReady} />
+  // Landing page
+  if (page === 'landing' && !user) {
+    return <LandingPage onLogin={login} onEnter={goToApp} />
   }
 
-  if (demoMode && !user) {
-    if (page === 'settings') {
-      return (
-        <Settings
-          user={{ displayName: 'Demo User', email: 'demo@local', photoURL: null }}
-          apiKey={apiKey}
-          apiModel={apiModel}
-          onSave={saveApiKey}
-          onLogout={() => { setDemoMode(false); setPage('landing') }}
-          onBack={() => setPage('dashboard')}
-          isDemo
-        />
-      )
-    }
-    return (
-      <Dashboard
-        user={{ displayName: 'Demo User', email: 'demo@local', photoURL: null }}
-        apiKey={apiKey}
-        apiModel={apiModel}
-        onLogout={() => { setDemoMode(false); setPage('landing') }}
-        onSettings={() => setPage('settings')}
-        isDemo
-      />
-    )
-  }
+  // Guest mode (Firebase not configured)
+  const activeUser = user || guestUser()
 
   if (page === 'settings') {
     return (
       <Settings
-        user={user}
+        user={activeUser}
         apiKey={apiKey}
         apiModel={apiModel}
         onSave={saveApiKey}
-        onLogout={logout}
+        onLogout={() => { setPage('landing') }}
         onBack={() => setPage('dashboard')}
       />
     )
@@ -116,10 +97,10 @@ function App() {
 
   return (
     <Dashboard
-      user={user}
+      user={activeUser}
       apiKey={apiKey}
       apiModel={apiModel}
-      onLogout={logout}
+      onLogout={() => { setPage('landing') }}
       onSettings={() => setPage('settings')}
     />
   )

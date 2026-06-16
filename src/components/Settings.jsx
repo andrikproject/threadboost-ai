@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function Settings({ user, apiKey, apiModel, onSave, onLogout, onBack, isDemo }) {
+export default function Settings({ user, apiKey, apiModel, onSave, onLogout, onBack }) {
   const [key, setKey] = useState(apiKey)
   const [model, setModel] = useState(apiModel || 'gpt-4o-mini')
   const [saved, setSaved] = useState(false)
@@ -51,13 +51,8 @@ export default function Settings({ user, apiKey, apiModel, onSave, onLogout, onB
                 </div>
               )}
               <div>
-                <p className="font-bold text-white/90">{user.displayName || 'Demo User'}</p>
+                <p className="font-bold text-white/90">{user.displayName || 'Pengguna'}</p>
                 <p className="text-sm text-white/40">{user.email}</p>
-                {isDemo && (
-                  <span className="inline-block mt-1 text-[10px] bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold border border-amber-500/20">
-                    MODE DEMO
-                  </span>
-                )}
               </div>
             </div>
           </section>
@@ -102,13 +97,69 @@ export default function Settings({ user, apiKey, apiModel, onSave, onLogout, onB
                   onChange={e => setModel(e.target.value)}
                   className="soft-input w-full px-4 py-3 text-sm appearance-none cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%3E%3Cpath%20d%3D%22M6%208L1%203h10z%22/%3E%3C/svg%3E')] bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10"
                 >
-                  <option value="gpt-4o-mini" className="bg-[#14141e]">GPT-4o-mini (Cepat &amp; Hemat)</option>
-                  <option value="gpt-4o" className="bg-[#14141e]">GPT-4o (Paling Pintar)</option>
-                  <option value="gpt-4o-mini-search-preview" className="bg-[#14141e]">GPT-4o-mini Search</option>
-                  <option value="claude-sonnet-4" className="bg-[#14141e]">Claude Sonnet 4</option>
-                  <option value="gemini-2.5-flash" className="bg-[#14141e]">Gemini 2.5 Flash</option>
-                  <option value="deepseek-chat" className="bg-[#14141e]">DeepSeek V3</option>
+                  <optgroup label="🤖 OpenAI">
+                    <option value="gpt-4o-mini" className="bg-[#14141e]">GPT-4o-mini (Cepat & Hemat)</option>
+                    <option value="gpt-4o" className="bg-[#14141e]">GPT-4o (Paling Pintar)</option>
+                    <option value="gpt-4o-mini-search-preview" className="bg-[#14141e]">GPT-4o-mini Search</option>
+                    <option value="gpt-4.1" className="bg-[#14141e]">GPT-4.1</option>
+                    <option value="gpt-4.1-mini" className="bg-[#14141e]">GPT-4.1-mini</option>
+                    <option value="gpt-4.1-nano" className="bg-[#14141e]">GPT-4.1-nano</option>
+                    <option value="gpt-4-turbo" className="bg-[#14141e]">GPT-4 Turbo</option>
+                    <option value="o3-mini" className="bg-[#14141e]">o3-mini</option>
+                    <option value="o1" className="bg-[#14141e]">o1</option>
+                    <option value="o1-mini" className="bg-[#14141e]">o1-mini</option>
+                  </optgroup>
+                  <optgroup label="🧠 Anthropic">
+                    <option value="claude-sonnet-4" className="bg-[#14141e]">Claude Sonnet 4</option>
+                    <option value="claude-haiku-3.5" className="bg-[#14141e]">Claude Haiku 3.5</option>
+                    <option value="claude-opus-4" className="bg-[#14141e]">Claude Opus 4</option>
+                    <option value="claude-3.5-haiku" className="bg-[#14141e]">Claude 3.5 Haiku</option>
+                    <option value="claude-3-opus" className="bg-[#14141e]">Claude 3 Opus</option>
+                    <option value="claude-3-sonnet" className="bg-[#14141e]">Claude 3 Sonnet</option>
+                  </optgroup>
+                  <optgroup label="🟢 Google Gemini">
+                    <option value="gemini-2.5-flash" className="bg-[#14141e]">Gemini 2.5 Flash</option>
+                    <option value="gemini-2.5-pro" className="bg-[#14141e]">Gemini 2.5 Pro</option>
+                    <option value="gemini-2.0-flash" className="bg-[#14141e]">Gemini 2.0 Flash</option>
+                    <option value="gemini-2.0-flash-lite" className="bg-[#14141e]">Gemini 2.0 Flash Lite</option>
+                    <option value="gemini-1.5-pro" className="bg-[#14141e]">Gemini 1.5 Pro</option>
+                    <option value="gemini-1.5-flash" className="bg-[#14141e]">Gemini 1.5 Flash</option>
+                  </optgroup>
+                  <optgroup label="🔵 Meta Llama">
+                    <option value="llama-4-maverick" className="bg-[#14141e]">Llama 4 Maverick</option>
+                    <option value="llama-4-scout" className="bg-[#14141e]">Llama 4 Scout</option>
+                    <option value="llama-3.3-70b" className="bg-[#14141e]">Llama 3.3 70B</option>
+                    <option value="llama-3.1-8b" className="bg-[#14141e]">Llama 3.1 8B</option>
+                    <option value="llama-3.1-70b" className="bg-[#14141e]">Llama 3.1 70B</option>
+                    <option value="llama-3.1-405b" className="bg-[#14141e]">Llama 3.1 405B</option>
+                  </optgroup>
+                  <optgroup label="🎯 DeepSeek">
+                    <option value="deepseek-chat" className="bg-[#14141e]">DeepSeek V3</option>
+                    <option value="deepseek-reasoner" className="bg-[#14141e]">DeepSeek R1</option>
+                    <option value="deepseek-v4" className="bg-[#14141e]">DeepSeek V4</option>
+                    <option value="deepseek-v4-flash" className="bg-[#14141e]">DeepSeek V4 Flash</option>
+                  </optgroup>
+                  <optgroup label="🌀 Mistral">
+                    <option value="mistral-large" className="bg-[#14141e]">Mistral Large</option>
+                    <option value="mistral-small" className="bg-[#14141e]">Mistral Small</option>
+                    <option value="mistral-nemo" className="bg-[#14141e]">Mistral Nemo</option>
+                    <option value="codestral" className="bg-[#14141e]">Codestral</option>
+                  </optgroup>
+                  <optgroup label="🔥 Lainnya">
+                    <option value="qwen3-235b-a22b" className="bg-[#14141e]">Qwen3 235B</option>
+                    <option value="qwen3-30b-a3b" className="bg-[#14141e]">Qwen3 30B</option>
+                    <option value="qwen-turbo" className="bg-[#14141e]">Qwen Turbo</option>
+                    <option value="command-r7b" className="bg-[#14141e]">Command R7B</option>
+                    <option value="command-r-plus" className="bg-[#14141e]">Command R+</option>
+                    <option value="command-a" className="bg-[#14141e]">Command A</option>
+                    <option value="grok-3" className="bg-[#14141e]">Grok 3</option>
+                    <option value="grok-3-mini" className="bg-[#14141e]">Grok 3 Mini</option>
+                    <option value="grok-2" className="bg-[#14141e]">Grok 2</option>
+                    <option value="reka-core" className="bg-[#14141e]">Reka Core</option>
+                    <option value="reka-flash" className="bg-[#14141e]">Reka Flash</option>
+                  </optgroup>
                 </select>
+                <p className="text-xs text-white/30 mt-1.5">Pilih model AI — ketersediaan tergantung provider Sumopod</p>
               </div>
 
               {/* Save */}
