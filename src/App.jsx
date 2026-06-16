@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { auth, firebaseReady, onAuthStateChanged, signInWithPopup, signOut } from './firebase'
+import { auth, provider, firebaseReady, onAuthStateChanged, signInWithPopup, signOut } from './firebase'
 import LandingPage from './components/LandingPage'
 import Dashboard from './components/Dashboard'
 import Settings from './components/Settings'
