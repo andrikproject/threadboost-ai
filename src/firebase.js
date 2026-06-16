@@ -1,17 +1,33 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+let auth = null;
+let provider = null;
+let db = null;
+let firebaseReady = false;
+
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyCT7U_DUMMY_KEY_REPLACE_ME",
+    authDomain: "threadboost-ai.firebaseapp.com",
+    projectId: "threadboost-ai",
+    storageBucket: "threadboost-ai.firebasestorage.app",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abc123"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  provider = new GoogleAuthProvider();
+  db = getFirestore(app);
+  firebaseReady = true;
+} catch (e) {
+  console.warn('Firebase init skipped (config placeholder):', e.message);
+}
+
+export {
+  auth, provider, db, firebaseReady,
+  onAuthStateChanged, signInWithPopup, signOut,
+  doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp
 };
-
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
-export const db = getFirestore(app);

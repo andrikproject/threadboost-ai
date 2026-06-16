@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { callSumopod, callSumopodJSON } from '../api'
+import { callSumopod } from '../api'
 
 const modes = [
-  { id: 'storytelling', icon: '📖', label: 'Storytelling', color: 'from-violet-500 to-purple-600' },
+  { id: 'storytelling', icon: '📖', label: 'Storytelling', color: 'from-cyan-500 to-blue-600' },
   { id: 'marketing', icon: '🛍️', label: 'Marketing', color: 'from-rose-500 to-pink-600' },
   { id: 'engagement', icon: '💬', label: 'Engagement', color: 'from-amber-500 to-orange-600' },
   { id: 'affiliate', icon: '🔗', label: 'Shopee Affiliate', color: 'from-emerald-500 to-green-600' },
   { id: 'secret', icon: '🤫', label: 'Secret Viral', color: 'from-fuchsia-500 to-pink-600' },
-  { id: 'spinner', icon: '🌀', label: 'Thread Spinner', color: 'from-cyan-500 to-blue-600' },
+  { id: 'spinner', icon: '🌀', label: 'Thread Spinner', color: 'from-cyan-500 to-violet-600' },
   { id: 'persona', icon: '👥', label: 'Multi-Persona', color: 'from-indigo-500 to-violet-600' },
   { id: 'daily', icon: '🔔', label: 'Daily Reminder', color: 'from-teal-500 to-emerald-600' },
 ]
@@ -21,12 +21,27 @@ const quickTools = [
 
 const personaTemplates = [
   { id: 'personal', name: 'Personal Branding', niche: 'Self-development, lifestyle', style: 'Santai, reflektif' },
-  { id: 'bisnis', name: 'Seller Digital', niche: 'Digital product, passive income', style: 'Persuasif,亲切' },
-  { id: 'affiliate', name: 'Affiliate Marketer', niche: 'Shopee, e-commerce, rekomendasi produk', style: 'Review personal, tulus' },
-  { id: 'kreator', name: 'Kreator Konten', niche: 'Humor, opini, trending topic', style: 'Santai, ceplas-ceplos' },
+  { id: 'bisnis', name: 'Seller Digital', niche: 'Digital product, passive income', style: 'Persuasif' },
+  { id: 'affiliate', name: 'Affiliate Marketer', niche: 'Shopee, e-commerce', style: 'Review personal, tulus' },
+  { id: 'kreator', name: 'Kreator Konten', niche: 'Humor, opini, trending', style: 'Santai, ceplas-ceplos' },
 ]
 
-export default function Dashboard({ user, apiKey, apiModel, onLogout, onSettings }) {
+function SlideLoading() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.04]">
+          <div className="shimmer-line h-3 w-12 mb-3" />
+          <div className="shimmer-line h-3 w-full mb-2" />
+          <div className="shimmer-line h-3 w-3/4 mb-2" />
+          <div className="shimmer-line h-3 w-5/6" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function Dashboard({ user, apiKey, apiModel, onLogout, onSettings, isDemo }) {
   const [activeMode, setActiveMode] = useState('storytelling')
   const [input, setInput] = useState('')
   const [extra, setExtra] = useState('')
@@ -34,14 +49,14 @@ export default function Dashboard({ user, apiKey, apiModel, onLogout, onSettings
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [history, setHistory] = useState([])
-  const [personas, setPersonas] = useState(personaTemplates)
+  const [personas] = useState(personaTemplates)
   const [selectedPersona, setSelectedPersona] = useState(personas[0])
   const [shopeeLink, setShopeeLink] = useState('')
   const [viralInput, setViralInput] = useState('')
-  const [dailyMissions, setDailyMissions] = useState([])
+  const [modePanel, setModePanel] = useState(false)
+  const resultRef = useRef(null)
   const quickRef = useRef(null)
 
-  // Load history from localStorage
   useEffect(() => {
     try {
       const h = JSON.parse(localStorage.getItem('threadboost_history') || '[]')
@@ -104,7 +119,7 @@ Format: tiap slide dipisah "---"`,
   }
 
   const generateThread = async () => {
-    if (!input.trim()) {
+    if (!input.trim() && activeMode !== 'spinner') {
       setError('Masukkan ide/topik dulu!')
       return
     }
@@ -132,14 +147,14 @@ Format: tiap slide dipisah "---"`,
           prompt = `Produk: ${input}\n${shopeeLink ? `Link: ${shopeeLink}` : ''}\n${extra ? `Info tambahan: "${extra}"` : ''}\n\nBuat utas review natural.`
           break
         case 'spinner':
-          prompt = `Utas asli:\n"${input}"\n\n${extra ? `Gaya/niche target: "${extra}"` : ''}\n\nTulis ulang dengan gaya berbeda.`
+          prompt = `Utas asli:\n"${viralInput}"\n\n${extra ? `Gaya/niche target: "${extra}"` : ''}\n\nTulis ulang dengan gaya berbeda.`
           break
         case 'persona':
           sysPrompt = `Kamu adalah ${selectedPersona.name} dengan niche ${selectedPersona.niche} dan gaya ${selectedPersona.style}.`
           prompt = `Topik: "${input}"\n${extra ? `Instruksi: "${extra}"` : ''}\n\nBuat utas Threads dengan persona ini.`
           break
         case 'daily':
-          prompt = `Buatkan 5 ide utas Threads harian tentang: "${input}".\n ${extra ? `Tambahan: "${extra}"` : ''}\n\nFormat: tiap ide dengan hook dan deskripsi singkat. Pisahkan dengan "---"`
+          prompt = `Buatkan 5 ide utas Threads harian tentang: "${input}".\n${extra ? `Tambahan: "${extra}"` : ''}\n\nFormat: tiap ide dengan hook dan deskripsi singkat. Pisahkan dengan "---"`
           break
       }
 
@@ -163,7 +178,6 @@ Format: tiap slide dipisah "---"`,
     setError('')
 
     const textToProcess = result || input
-
     const tools = {
       humanize: `Humanize teks berikut. Buat lebih natural, kurangin kata formal, tambahin diksi santai khas Threads Indonesia:\n\n${textToProcess}`,
       punchline: `Tambahin punchline yang stronger di hook dan closing dari teks ini. Bikin lebih nendang:\n\n${textToProcess}`,
@@ -183,53 +197,114 @@ Format: tiap slide dipisah "---"`,
 
   const copyResult = () => {
     if (result) {
-      navigator.clipboard.writeText(result)
-        .then(() => alert('Tersalin!'))
-        .catch(() => {})
+      navigator.clipboard.writeText(result).catch(() => {})
     }
   }
 
+  const currentMode = modes.find(m => m.id === activeMode)
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
-      {/* Top Bar */}
-      <header className="border-b border-white/5 px-4 py-3 flex items-center justify-between sticky top-0 bg-neutral-950/90 backdrop-blur-xl z-40">
+    <div className="relative min-h-screen text-white bg-[#0a0a0f]">
+      {/* ─── Aurora Background ─── */}
+      <div className="aurora-bg" aria-hidden="true">
+        <div className="aurora-orb" />
+        <div className="aurora-orb" />
+        <div className="aurora-orb" />
+      </div>
+
+      {/* ─── Glass Header ─── */}
+      <header className="relative z-30 glass-strong border-b border-white/[0.04] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-sm font-bold">TB</span>
-          <span className="font-bold">Thread<span className="text-cyan-400">Boost</span></span>
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 via-violet-500 to-pink-500 flex items-center justify-center text-xs font-bold shadow-lg shadow-cyan-500/20">
+            TB
+          </span>
+          <span className="font-bold">Thread<span className="aurora-text">Boost</span></span>
+          {isDemo && (
+            <span className="text-[10px] bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold border border-amber-500/20">
+              DEMO
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={onSettings} className="px-3 py-1.5 bg-white/10 hover:bg-white/15 rounded-xl text-xs font-bold transition cursor-pointer">⚙️</button>
-          <button onClick={onLogout} className="px-3 py-1.5 bg-white/10 hover:bg-white/15 rounded-xl text-xs font-bold transition cursor-pointer">Keluar</button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onSettings}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer text-sm"
+            title="Pengaturan"
+          >
+            ⚙️
+          </button>
+          <button
+            onClick={onLogout}
+            className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs font-bold transition-all cursor-pointer"
+          >
+            Keluar
+          </button>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Mode Selection & Input */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Mode Tabs */}
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+      {/* ─── Mobile Mode Picker ─── */}
+      <button
+        onClick={() => setModePanel(!modePanel)}
+        className="relative z-20 lg:hidden w-full flex items-center justify-between px-4 py-3 bg-white/[0.02] border-b border-white/[0.04] text-sm"
+      >
+        <span className="flex items-center gap-2">
+          <span>{currentMode?.icon}</span>
+          <span className="font-bold">{currentMode?.label}</span>
+        </span>
+        <span className="text-white/30 text-xs">{modePanel ? '▲' : '▼'}</span>
+      </button>
+
+      {modePanel && (
+        <div className="relative z-20 lg:hidden px-3 py-3 bg-white/[0.02] border-b border-white/[0.04] animate-fade-up">
+          <div className="grid grid-cols-4 gap-1.5">
+            {modes.map(m => (
+              <button
+                key={m.id}
+                onClick={() => { setActiveMode(m.id); setModePanel(false) }}
+                className={`p-2 rounded-xl text-center transition-all cursor-pointer ${
+                  activeMode === m.id
+                    ? 'bg-gradient-to-br ' + m.color + ' text-white shadow-lg scale-105'
+                    : 'glass-tab'
+                }`}
+              >
+                <div className="text-base mb-0.5">{m.icon}</div>
+                <div className="text-[8px] font-bold leading-tight opacity-70">{m.label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Main Content ─── */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ─── Left Column ─── */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Mode Tabs (Desktop) */}
+          <div className="hidden lg:grid grid-cols-8 gap-2">
             {modes.map(m => (
               <button
                 key={m.id}
                 onClick={() => setActiveMode(m.id)}
-                className={`p-2 rounded-xl text-center transition cursor-pointer ${
+                className={`p-2.5 rounded-xl text-center transition-all cursor-pointer ${
                   activeMode === m.id
                     ? `bg-gradient-to-br ${m.color} text-white shadow-lg scale-105`
-                    : 'bg-neutral-900/50 border border-white/5 hover:border-white/20 text-neutral-400'
+                    : 'glass-tab'
                 }`}
               >
                 <div className="text-lg mb-0.5">{m.icon}</div>
-                <div className="text-[9px] font-bold leading-tight">{m.label}</div>
+                <div className="text-[9px] font-bold leading-tight opacity-70">{m.label}</div>
               </button>
             ))}
           </div>
 
-          {/* Mode-specific inputs */}
-          <div className="bg-neutral-900/50 rounded-2xl p-5 border border-white/5 space-y-4">
-            <h2 className="font-bold flex items-center gap-2">
-              {modes.find(m => m.id === activeMode)?.icon}
-              {modes.find(m => m.id === activeMode)?.label}
-            </h2>
+          {/* ─── Input Panel ─── */}
+          <div className="soft-card p-5 md:p-6 space-y-4 animate-fade-up">
+            <div className="flex items-center gap-2.5 mb-1">
+              <span className="text-xl">{currentMode?.icon}</span>
+              <h2 className="font-bold text-lg bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+                {currentMode?.label}
+              </h2>
+            </div>
 
             {/* Persona selector */}
             {activeMode === 'persona' && (
@@ -238,14 +313,14 @@ Format: tiap slide dipisah "---"`,
                   <button
                     key={p.id}
                     onClick={() => setSelectedPersona(p)}
-                    className={`p-3 rounded-xl text-left text-xs transition cursor-pointer ${
+                    className={`p-3 rounded-xl text-left text-xs transition-all cursor-pointer ${
                       selectedPersona.id === p.id
-                        ? 'bg-cyan-500/20 border border-cyan-500/50'
-                        : 'bg-neutral-800 border border-white/5 hover:border-white/20'
+                        ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/10'
+                        : 'glass-tab border border-white/[0.04]'
                     }`}
                   >
-                    <div className="font-bold mb-1">{p.name}</div>
-                    <div className="text-[10px] text-neutral-500">{p.niche}</div>
+                    <div className="font-bold text-white/90 mb-1">{p.name}</div>
+                    <div className="text-[10px] text-white/40">{p.niche}</div>
                   </button>
                 ))}
               </div>
@@ -258,18 +333,18 @@ Format: tiap slide dipisah "---"`,
                 value={shopeeLink}
                 onChange={e => setShopeeLink(e.target.value)}
                 placeholder="Link Shopee (opsional)"
-                className="w-full bg-neutral-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500"
+                className="soft-input w-full px-4 py-2.5 text-sm"
               />
             )}
 
-            {/* Spinner & Viral */}
-            {(activeMode === 'spinner') && (
+            {/* Spinner extra textarea */}
+            {activeMode === 'spinner' && (
               <textarea
                 value={viralInput}
                 onChange={e => setViralInput(e.target.value)}
                 placeholder="Tempel utas asli yang mau di-rewrite..."
                 rows={4}
-                className="w-full bg-neutral-800 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 resize-none"
+                className="soft-input w-full px-4 py-3 text-sm resize-none"
               />
             )}
 
@@ -292,7 +367,7 @@ Format: tiap slide dipisah "---"`,
                 'Masukkan ide...'
               }
               rows={4}
-              className="w-full bg-neutral-800 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 resize-none"
+              className="soft-input w-full px-4 py-3 text-sm resize-none"
             />
 
             {/* Extra instructions */}
@@ -301,92 +376,112 @@ Format: tiap slide dipisah "---"`,
               value={extra}
               onChange={e => setExtra(e.target.value)}
               placeholder="Instruksi tambahan (opsional)..."
-              className="w-full bg-neutral-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500"
+              className="soft-input w-full px-4 py-2.5 text-sm"
             />
 
             {/* Generate button */}
             <button
               onClick={generateThread}
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-xl font-bold hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition cursor-pointer flex items-center justify-center gap-2"
+              className="aurora-btn w-full py-3.5 font-bold cursor-pointer disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                   Generating...
                 </>
               ) : (
-                `🚀 Buat Utas ${modes.find(m => m.id === activeMode)?.label || ''}`
+                `🚀 Buat Utas ${currentMode?.label || ''}`
               )}
             </button>
 
+            {/* Error */}
             {error && (
-              <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-rose-300">
-                ❌ {error}
+              <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3 text-sm text-rose-300 flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{error}</span>
                 {error.includes('API Key') && (
-                  <button onClick={onSettings} className="ml-2 underline">Atur sekarang</button>
+                  <button onClick={onSettings} className="ml-auto underline text-rose-200 hover:text-rose-100 whitespace-nowrap">
+                    Atur sekarang
+                  </button>
                 )}
               </div>
             )}
           </div>
 
-          {/* Quick Tools */}
-          <div className="bg-neutral-900/50 rounded-2xl p-5 border border-white/5">
-            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">Quick Refinement Tools</h3>
+          {/* ─── Quick Tools ─── */}
+          <div className="soft-card p-5 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <h3 className="text-xs font-bold text-white/30 uppercase tracking-[0.15em] mb-3">
+              Quick Refinement Tools
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {quickTools.map(t => (
                 <button
                   key={t.id}
                   onClick={() => applyQuickTool(t.id)}
                   disabled={loading}
-                  className="p-3 bg-neutral-800 rounded-xl text-xs font-bold hover:bg-neutral-700 transition disabled:opacity-50 cursor-pointer"
+                  className="glass-tab p-3 rounded-xl text-xs font-bold text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-center transition-all"
                 >
-                  {t.icon} {t.label}
+                  <span className="block text-lg mb-1">{t.icon}</span>
+                  {t.label}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right: Result */}
-        <div className="space-y-4">
-          <div className="bg-neutral-900/50 rounded-2xl p-5 border border-white/5 min-h-[300px]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-sm">Hasil Utas</h3>
+        {/* ─── Right: Result Panel ─── */}
+        <div className="space-y-5" ref={resultRef}>
+          <div className="soft-card p-5 min-h-[300px] animate-fade-up" style={{ animationDelay: '0.05s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-sm text-white/70 uppercase tracking-[0.1em]">Hasil Utas</h3>
               {result && (
-                <button onClick={copyResult} className="text-xs text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
+                <button
+                  onClick={copyResult}
+                  className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-500/20 cursor-pointer"
+                >
                   📋 Salin
                 </button>
               )}
             </div>
 
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-12 text-neutral-500">
-                <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full mb-4" />
-                <p className="text-sm">Menulis utas...</p>
-              </div>
+              <SlideLoading />
             ) : result ? (
-              <div className="space-y-3 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+              <div className="space-y-3 text-sm leading-relaxed whitespace-pre-wrap" ref={quickRef}>
                 {result.split('---').map((slide, i) => (
-                  <div key={i} className="bg-neutral-800/50 rounded-xl p-4 border border-white/5">
-                    <div className="text-[10px] text-neutral-600 font-bold mb-1">{i + 1}/{result.split('---').length}</div>
+                  <div
+                    key={i}
+                    className="glass-light rounded-xl p-4 border-l-2"
+                    style={{ borderLeftColor: ['#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b'][i % 5] }}
+                  >
+                    <div className="text-[10px] text-white/30 font-bold mb-2 flex items-center gap-2">
+                      <span
+                        className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold"
+                        style={{ background: ['rgba(6,182,212,0.15)', 'rgba(139,92,246,0.15)', 'rgba(236,72,153,0.15)', 'rgba(20,184,166,0.15)', 'rgba(245,158,11,0.15)'][i % 5],
+                                 color: ['#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b'][i % 5] }}
+                      >
+                        {i + 1}
+                      </span>
+                      Slide {i + 1} / {result.split('---').length}
+                    </div>
                     {slide.trim()}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-neutral-600 text-sm">
-                <div className="text-4xl mb-4">💬</div>
+              <div className="flex flex-col items-center justify-center py-16 text-white/30 text-sm">
+                <div className="text-5xl mb-5 opacity-30">💬</div>
                 <p>Hasil utas akan muncul di sini</p>
-                <p className="text-xs mt-1">Pilih mode, masukkan ide, klik generate</p>
+                <p className="text-xs mt-2 text-white/20">Pilih mode, masukkan ide, klik generate</p>
               </div>
             )}
           </div>
 
-          {/* History */}
+          {/* ─── History ─── */}
           {history.length > 0 && (
-            <div className="bg-neutral-900/50 rounded-2xl p-5 border border-white/5">
-              <h3 className="font-bold text-sm mb-3">Riwayat</h3>
+            <div className="soft-card p-5 animate-fade-up" style={{ animationDelay: '0.15s' }}>
+              <h3 className="font-bold text-sm text-white/70 uppercase tracking-[0.1em] mb-3">Riwayat</h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {history.slice(0, 10).map(h => (
                   <div
@@ -396,14 +491,16 @@ Format: tiap slide dipisah "---"`,
                       setInput(h.input)
                       setActiveMode(h.mode)
                     }}
-                    className="p-2.5 bg-neutral-800 rounded-xl cursor-pointer hover:bg-neutral-700 transition"
+                    className="glass-tab border border-white/[0.03] p-2.5 rounded-xl cursor-pointer group"
                   >
                     <div className="flex items-center gap-2 text-xs">
                       <span>{modes.find(m => m.id === h.mode)?.icon || '💬'}</span>
-                      <span className="font-bold truncate">{h.input.slice(0, 40)}</span>
+                      <span className="font-bold text-white/80 truncate group-hover:text-white transition-colors">
+                        {h.input.slice(0, 40)}
+                      </span>
                     </div>
-                    <div className="text-[10px] text-neutral-600 mt-1">
-                      {new Date(h.createdAt).toLocaleDateString('id-ID')}
+                    <div className="text-[10px] text-white/30 mt-1">
+                      {new Date(h.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 ))}
