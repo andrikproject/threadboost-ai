@@ -9,12 +9,12 @@ let firebaseReady = false;
 
 try {
   const firebaseConfig = {
-    apiKey: "AIzaSyCT7U_DUMMY_KEY_REPLACE_ME",
-    authDomain: "threadboost-ai.firebaseapp.com",
-    projectId: "threadboost-ai",
-    storageBucket: "threadboost-ai.firebasestorage.app",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123"
+    apiKey: "AIzaSyCtWhgoHARrXIInG4f4F3ijBxJahA8YCEs",
+    authDomain: "threadboost-ai-c20b0.firebaseapp.com",
+    projectId: "threadboost-ai-c20b0",
+    storageBucket: "threadboost-ai-c20b0.firebasestorage.app",
+    messagingSenderId: "443419275438",
+    appId: "1:443419275438:web:b8e31d40e854e2d054fd3f"
   };
 
   const app = initializeApp(firebaseConfig);
