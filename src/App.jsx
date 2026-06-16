@@ -12,10 +12,13 @@ function App() {
   const [page, setPage] = useState('landing')
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('sumopod_api_key') || '')
   const [apiModel, setApiModel] = useState(() => localStorage.getItem('sumopod_model') || 'gpt-4o-mini')
+  const [apiEndpoint, setApiEndpoint] = useState(() => localStorage.getItem('sumopod_endpoint') || 'https://ai.sumopod.com/v1')
+  const [detectedModels, setDetectedModels] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sumopod_detected_models') || '[]') } catch { return [] }
+  })
 
   useEffect(() => {
     if (!firebaseReady || !auth) {
-      // Firebase not configured — langsung akses sebagai guest
       setLoading(false)
       return
     }
@@ -48,21 +51,17 @@ function App() {
     setPage('landing')
   }
 
-  const goToApp = () => {
-    setPage('dashboard')
-  }
+  const goToApp = () => setPage('dashboard')
 
-  const guestUser = () => ({
-    displayName: localStorage.getItem('threadboost_name') || 'Guest',
-    email: 'guest@local',
-    photoURL: null,
-  })
-
-  const saveApiKey = (key, model) => {
+  const saveSettings = (key, model, endpoint, detected) => {
     setApiKey(key)
     setApiModel(model)
+    setApiEndpoint(endpoint)
+    if (detected) setDetectedModels(detected)
     localStorage.setItem('sumopod_api_key', key)
     localStorage.setItem('sumopod_model', model)
+    localStorage.setItem('sumopod_endpoint', endpoint)
+    if (detected) localStorage.setItem('sumopod_detected_models', JSON.stringify(detected))
   }
 
   if (loading) {
@@ -83,21 +82,20 @@ function App() {
           user={user} page={page} setPage={setPage}
           login={login} logout={logout} goToApp={goToApp}
           apiKey={apiKey} apiModel={apiModel}
-          saveApiKey={saveApiKey}
-          firebaseReady={firebaseReady}
+          apiEndpoint={apiEndpoint}
+          detectedModels={detectedModels}
+          saveSettings={saveSettings}
         />
       </ToastProvider>
     </ErrorBoundary>
   )
 }
 
-function AppContent({ user, page, setPage, login, logout, goToApp, apiKey, apiModel, saveApiKey, firebaseReady }) {
-  // Landing page
+function AppContent({ user, page, setPage, login, logout, goToApp, apiKey, apiModel, apiEndpoint, detectedModels, saveSettings }) {
   if (page === 'landing' && !user) {
     return <LandingPage onLogin={login} onEnter={goToApp} />
   }
 
-  // Guest mode
   const activeUser = user || {
     displayName: localStorage.getItem('threadboost_name') || 'Guest',
     email: 'guest@local',
@@ -110,8 +108,10 @@ function AppContent({ user, page, setPage, login, logout, goToApp, apiKey, apiMo
         user={activeUser}
         apiKey={apiKey}
         apiModel={apiModel}
-        onSave={saveApiKey}
-        onLogout={() => { setPage('landing') }}
+        apiEndpoint={apiEndpoint}
+        detectedModels={detectedModels}
+        onSave={saveSettings}
+        onLogout={() => setPage('landing')}
         onBack={() => setPage('dashboard')}
       />
     )
@@ -122,7 +122,7 @@ function AppContent({ user, page, setPage, login, logout, goToApp, apiKey, apiMo
       user={activeUser}
       apiKey={apiKey}
       apiModel={apiModel}
-      onLogout={() => { setPage('landing') }}
+      onLogout={() => setPage('landing')}
       onSettings={() => setPage('settings')}
     />
   )
