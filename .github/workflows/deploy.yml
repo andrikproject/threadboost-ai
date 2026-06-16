@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 20
       - run: npm install --legacy-peer-deps || npm install --install-strategy=nested
-      - run: npx --yes vite build
+      - run: npm run build
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
