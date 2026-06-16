@@ -17,17 +17,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: actions/setup-node@v4
+      - name: Cache node_modules
+        uses: actions/cache@v4
         with:
-          node-version: 20
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package.json') }}
           
-      # npm bug workaround: install deps first with retry
-      - name: Install dependencies
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Install with retry
         run: |
-          npx --yes vite build 2>/dev/null && exit 0
-          npm install --no-audit 2>/dev/null 
-          npm run build
+          for i in 1 2 3; do
+            npm install --no-audit --no-fund --ignore-scripts --no-optional && break
+            sleep 5
+          done
           
+      - name: Build
+        run: ./node_modules/.bin/vite build
+        
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
