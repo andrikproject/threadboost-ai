@@ -4,9 +4,6 @@ on:
   push:
     branches: [master]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,9 +18,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - run: npm install --no-audit --no-fund
-      - run: npx vite build
+          node-version: 20
+      - run: npm install --legacy-peer-deps || npm install --install-strategy=nested
+      - run: npx --yes vite build
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
