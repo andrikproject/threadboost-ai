@@ -3,6 +3,8 @@ import { auth, provider, firebaseReady, onAuthStateChanged, signInWithPopup, sig
 import LandingPage from './components/LandingPage'
 import Dashboard from './components/Dashboard'
 import Settings from './components/Settings'
+import ErrorBoundary from './components/ErrorBoundary'
+import { ToastProvider } from './components/Toast'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -74,13 +76,33 @@ function App() {
     )
   }
 
+  return (
+    <ErrorBoundary>
+      <ToastProvider>
+        <AppContent
+          user={user} page={page} setPage={setPage}
+          login={login} logout={logout} goToApp={goToApp}
+          apiKey={apiKey} apiModel={apiModel}
+          saveApiKey={saveApiKey}
+          firebaseReady={firebaseReady}
+        />
+      </ToastProvider>
+    </ErrorBoundary>
+  )
+}
+
+function AppContent({ user, page, setPage, login, logout, goToApp, apiKey, apiModel, saveApiKey, firebaseReady }) {
   // Landing page
   if (page === 'landing' && !user) {
     return <LandingPage onLogin={login} onEnter={goToApp} />
   }
 
-  // Guest mode (Firebase not configured)
-  const activeUser = user || guestUser()
+  // Guest mode
+  const activeUser = user || {
+    displayName: localStorage.getItem('threadboost_name') || 'Guest',
+    email: 'guest@local',
+    photoURL: null,
+  }
 
   if (page === 'settings') {
     return (
