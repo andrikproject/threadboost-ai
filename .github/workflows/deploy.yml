@@ -4,11 +4,8 @@ on:
   push:
     branches: [master]
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,14 +16,20 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm cache clean --force 2>/dev/null; rm -rf node_modules package-lock.json && npm install 2>&1
-      - run: npm run build
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
+      
+      - name: Install & Build with Yarn
+        run: |
+          rm -f package-lock.json
+          corepack enable
+          yarn set version 4
+          yarn install
+          yarn build
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-      - id: deployment
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
